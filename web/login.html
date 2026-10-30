@@ -1,0 +1,15 @@
+{{template "head" .}}
+<div style="max-width:420px;margin:40px auto 0">
+  <h1 style="font-size:26px">登录</h1>
+  <p class="lead" style="font-size:14px">用站点账号登录，管理你的 API Key 与用量。</p>
+  {{if .Err}}<div class="alert err">{{.Err}}</div>{{end}}
+  <form method="post" action="/login" class="card" style="margin-top:18px">
+    <label for="name">用户名</label>
+    <input id="name" name="name" autocomplete="username" required>
+    <label for="pass">密码</label>
+    <input id="pass" name="pass" type="password" autocomplete="current-password" required>
+    <button class="btn" style="margin-top:16px;width:100%" type="submit">登录</button>
+  </form>
+  {{if .InviteOn}}<p class="muted" style="margin-top:14px">还没有账号？<a href="/register">注册</a></p>{{end}}
+</div>
+{{template "foot" .}}

@@ -1,0 +1,59 @@
+{{template "head" .}}
+<h1 style="font-size:26px">接口文档</h1>
+<p class="lead">OpenAI 兼容。Base URL 后面接 <code>/v1</code>，鉴权用站点发的 <code>sk-wb-…</code>。</p>
+
+<h2>鉴权</h2>
+<pre>Authorization: Bearer sk-wb-xxxxxxxx</pre>
+<p class="muted">也接受 <code>x-api-key</code> 头。Key 只在创建时显示一次，服务端只存哈希。</p>
+
+<h2>端点</h2>
+<div class="card" style="padding:0;overflow-x:auto">
+<table>
+<thead><tr><th>方法与路径</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td class="mono">POST /v1/chat/completions</td><td>对话补全，支持 <code>stream:true</code>（SSE 原样透传）</td></tr>
+<tr><td class="mono">GET /v1/models</td><td>模型目录</td></tr>
+<tr><td class="mono">GET /healthz</td><td>站点存活探针</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2>流式对话</h2>
+<pre>curl -N {{.Upstream}}/v1/chat/completions \
+  -H "Authorization: Bearer sk-wb-..." \
+  -H "Content-Type: application/json" \
+  -d '{"model":"deepseek-v4-flash","messages":[{"role":"user","content":"你好"}],"stream":true}'</pre>
+
+<h2>Python</h2>
+<pre>from openai import OpenAI
+
+client = OpenAI(base_url="{{.Upstream}}/v1", api_key="sk-wb-...")
+for chunk in client.chat.completions.create(
+    model="deepseek-v4-flash",
+    messages=[{"role": "user", "content": "你好"}],
+    stream=True,
+):
+    print(chunk.choices[0].delta.content or "", end="")</pre>
+
+<h2>Node.js</h2>
+<pre>import OpenAI from "openai";
+
+const client = new OpenAI({ baseURL: "{{.Upstream}}/v1", apiKey: "sk-wb-..." });
+const r = await client.chat.completions.create({
+  model: "deepseek-v4-flash",
+  messages: [{ role: "user", content: "你好" }],
+});
+console.log(r.choices[0].message.content);</pre>
+
+<h2>计量与限流</h2>
+<ul class="muted">
+  <li>按上游返回的 <code>usage.total_tokens</code> 计入额度；流式取最后一个 usage 帧。</li>
+  <li>额度用完返回 <code>429 quota_exceeded</code>。</li>
+  <li>请求记录（模型、token、耗时、来源 IP）在控制台「最近请求」里可查。</li>
+</ul>
+
+<h2>可用模型</h2>
+<div class="list">
+  {{range .Models}}<span class="tag">{{.}}</span>{{else}}<span class="dim">模型目录暂不可用</span>{{end}}
+</div>
+{{template "foot" .}}

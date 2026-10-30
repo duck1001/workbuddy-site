@@ -1,0 +1,28 @@
+{{template "head" .}}
+<section class="hero">
+  <span class="badge">OpenAI 兼容 · 流式 · 多模型</span>
+  <h1>一个 key，{{len .Models}} 个模型。</h1>
+  <p class="lead">统一入口，OpenAI SDK 零改造接入。按 key 计量、按额度限流，用量在控制台里逐条可查。</p>
+  <div class="row" style="margin-top:22px">
+    {{if .User}}<a class="btn" href="/dashboard">进入控制台</a>{{else}}<a class="btn" href="/login">登录控制台</a>{{end}}
+    <a class="ghost" href="/docs">看文档</a>
+  </div>
+</section>
+
+<section class="grid c3" style="margin-top:34px">
+  <div class="card"><div class="stat">{{.StatsU}}<small>注册用户</small></div></div>
+  <div class="card"><div class="stat">{{.StatsK}}<small>有效 Key</small></div></div>
+  <div class="card"><div class="stat">{{.StatsReq}}<small>累计请求</small></div></div>
+</section>
+
+<h2>接入方式</h2>
+<pre>curl {{.Upstream}}/v1/chat/completions \
+  -H "Authorization: Bearer sk-wb-..." \
+  -H "Content-Type: application/json" \
+  -d '{"model":"deepseek-v4-flash","messages":[{"role":"user","content":"hi"}],"stream":true}'</pre>
+
+<h2>可用模型</h2>
+<div class="list">
+  {{range .Models}}<span class="tag">{{.}}</span>{{else}}<span class="dim">模型目录暂不可用</span>{{end}}
+</div>
+{{template "foot" .}}

@@ -1,0 +1,42 @@
+{{template "head" .}}
+<h1 style="font-size:26px">管理</h1>
+<p class="lead">用户、额度与停用状态。</p>
+
+<section class="grid c3" style="margin-top:16px">
+  <div class="card"><div class="stat">{{.StatsU}}<small>用户</small></div></div>
+  <div class="card"><div class="stat">{{.StatsK}}<small>有效 Key</small></div></div>
+  <div class="card"><div class="stat">{{.StatsReq}}<small>请求 / {{comma .StatsTok}} token</small></div></div>
+</section>
+
+<h2>用户</h2>
+<div class="card" style="padding:0;overflow-x:auto">
+<table>
+<thead><tr><th>用户名</th><th>状态</th><th>额度</th><th>已用</th><th>请求</th><th>最近</th><th>操作</th></tr></thead>
+<tbody>
+{{range .Users}}
+<tr>
+  <td>{{.Name}}{{if .IsAdmin}} <span class="pill">admin</span>{{end}}</td>
+  <td>{{if .Disabled}}<span class="pill off">停用</span>{{else}}<span class="pill ok">正常</span>{{end}}</td>
+  <td class="mono">{{comma .TokLimit}}</td>
+  <td class="mono">{{comma .TokUsed}}</td>
+  <td class="mono">{{.ReqTotal}}</td>
+  <td class="dim">{{fmtTime .LastSeen}}</td>
+  <td>
+    <form method="post" action="/admin" class="inline">
+      <input type="hidden" name="csrf" value="{{$.CSRF}}">
+      <input type="hidden" name="uid" value="{{.ID}}">
+      <input name="limit" placeholder="额度" style="width:96px;padding:4px 8px;font-size:12px">
+      <button class="copy" name="action" value="quota" type="submit">改额度</button>
+      {{if .Disabled}}
+      <button class="copy" name="action" value="enable" type="submit">启用</button>
+      {{else}}
+      <button class="btn bad" name="action" value="disable" type="submit">停用</button>
+      {{end}}
+    </form>
+  </td>
+</tr>
+{{end}}
+</tbody>
+</table>
+</div>
+{{template "foot" .}}

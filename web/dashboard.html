@@ -1,0 +1,105 @@
+{{template "head" .}}
+<div class="row" style="justify-content:space-between;align-items:flex-end">
+  <div>
+    <h1 style="font-size:26px;margin-bottom:4px">控制台</h1>
+    <p class="muted" style="margin:0">{{.User.Name}} · 注册于 {{fmtTime .User.Created}}</p>
+  </div>
+  <div class="pill {{if .User.Disabled}}off{{else}}ok{{end}}">{{if .User.Disabled}}已停用{{else}}正常{{end}}</div>
+</div>
+
+{{if eq .Mode "single"}}
+<div class="card" style="margin-top:18px">
+  <h3>你的 API Key</h3>
+  <div class="row" style="margin-top:8px">
+    <code class="mono" style="word-break:break-all">{{.MasterKey}}</code>
+  </div>
+  <p class="muted" style="margin:10px 0 0">Base URL&nbsp; <code>{{.Upstream}}/v1</code></p>
+  <p class="muted" style="margin:4px 0 0">OpenAI 客户端填这两项即可；模型名可带或不带站点前缀。</p>
+</div>
+{{end}}
+
+{{if .NewKey}}
+<div class="alert key">
+  <strong>新 Key 已创建，只显示这一次：</strong>
+  <div class="row" style="margin-top:8px"><code class="mono">{{.NewKey}}</code></div>
+</div>
+{{end}}
+
+<section class="grid c3" style="margin-top:18px">
+  <div class="card">
+    {{if eq .User.TokLimit 0}}
+      <div class="stat">{{comma .User.TokUsed}}<small>已用 token · 额度不限</small></div>
+      <div class="bar" style="margin-top:10px"><i style="width:0%"></i></div>
+      <div class="muted" style="margin-top:6px">单用户模式，不做额度限制</div>
+    {{else}}
+      <div class="stat">{{comma .User.TokUsed}}<small>已用 token / 额度 {{comma .User.TokLimit}}</small></div>
+      <div class="bar" style="margin-top:10px"><i style="width:{{pct .User.TokUsed .User.TokLimit}}%"></i></div>
+      <div class="muted" style="margin-top:6px">剩余 {{comma (sub .User.TokLimit .User.TokUsed)}}</div>
+    {{end}}
+  </div>
+  <div class="card"><div class="stat">{{.User.ReqTotal}}<small>累计请求</small></div></div>
+  <div class="card"><div class="stat">{{len .Keys}}<small>Key 数量</small></div></div>
+</section>
+
+<h2>API Keys</h2>
+<div class="card" style="padding:0;overflow-x:auto">
+<table>
+  <thead><tr><th>名称</th><th>Key</th><th>今日</th><th>累计</th><th>token</th><th>最近使用</th><th></th></tr></thead>
+  <tbody>
+  {{range .Keys}}
+    <tr>
+      <td>{{.Name}}</td>
+      <td class="mono">{{.Prefix}}…{{if .Revoked}} <span class="pill off">已吊销</span>{{end}}</td>
+      <td class="mono">{{.DayReq}}/{{if eq .DayLimit 0}}∞{{else}}{{.DayLimit}}{{end}}</td>
+      <td class="mono">{{.ReqTotal}}</td>
+      <td class="mono">{{comma .TokTotal}}</td>
+      <td class="dim">{{fmtTime .LastUsed}}</td>
+      <td>
+        {{if not .Revoked}}
+        <form method="post" action="/api/keys/revoke" class="inline">
+          <input type="hidden" name="csrf" value="{{$.CSRF}}">
+          <input type="hidden" name="id" value="{{.ID}}">
+          <button class="btn bad" type="submit">吊销</button>
+        </form>
+        {{end}}
+      </td>
+    </tr>
+  {{else}}
+    <tr><td colspan="7" class="dim">还没有 Key。</td></tr>
+  {{end}}
+  </tbody>
+</table>
+</div>
+
+<form method="post" action="/api/keys" class="row" style="margin-top:12px">
+  <input type="hidden" name="csrf" value="{{.CSRF}}">
+  <input name="name" placeholder="Key 备注名" style="max-width:260px">
+  <button class="btn" type="submit">创建 Key</button>
+</form>
+
+<h2>最近请求</h2>
+<div class="card" style="padding:0;overflow-x:auto">
+<table>
+  <thead><tr><th>时间</th><th>模型</th><th>状态</th><th>token</th><th>耗时</th><th>来源</th></tr></thead>
+  <tbody>
+  {{range .Usage}}
+    <tr>
+      <td class="dim mono">{{fmtTime .Time}}</td>
+      <td class="mono">{{if .Model}}{{.Model}}{{else}}—{{end}}</td>
+      <td><span class="pill {{if lt .Status 400}}ok{{else}}off{{end}}">{{.Status}}</span></td>
+      <td class="mono">{{.Tokens}}</td>
+      <td class="mono">{{.Latency}}ms</td>
+      <td class="dim mono">{{.IP}}</td>
+    </tr>
+  {{else}}
+    <tr><td colspan="6" class="dim">暂无请求记录。</td></tr>
+  {{end}}
+  </tbody>
+</table>
+</div>
+
+<h2>可用模型</h2>
+<div class="list">
+  {{range .Models}}<span class="tag">{{.}}</span>{{else}}<span class="dim">模型目录暂不可用</span>{{end}}
+</div>
+{{template "foot" .}}
