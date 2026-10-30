@@ -87,6 +87,7 @@ type pageData struct {
 	InviteOn  bool
 	Mode      string
 	MasterKey string
+	GatewayKey string
 }
 
 func (s *Server) base(r *http.Request) pageData {
@@ -96,7 +97,7 @@ func (s *Server) base(r *http.Request) pageData {
 	}
 	d := pageData{
 		Site: cfg.SiteName, Page: "home", InviteOn: cfg.InviteCode != "",
-		Upstream: scheme + "://" + r.Host, Mode: cfg.Mode, MasterKey: cfg.MasterKey,
+		Upstream: scheme + "://" + r.Host, Mode: cfg.Mode, MasterKey: cfg.MasterKey, GatewayKey: upstreamKey,
 	}
 	if u := sessionUser(r); u != nil {
 		d.User = u

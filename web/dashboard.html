@@ -15,6 +15,10 @@
   </div>
   <p class="muted" style="margin:10px 0 0">Base URL&nbsp; <code>{{.Upstream}}/v1</code></p>
   <p class="muted" style="margin:4px 0 0">OpenAI 客户端填这两项即可；模型名可带或不带站点前缀。</p>
+  <p class="muted" style="margin:14px 0 0;padding-top:12px;border-top:1px solid var(--line)">
+    网关密钥（进 <code>/panel/</code> 加账号用，别外发）<br>
+    <code class="mono" style="word-break:break-all">{{.GatewayKey}}</code>
+  </p>
 </div>
 {{end}}
 
