@@ -137,6 +137,7 @@ func main() {
 	mux.HandleFunc("/logout", srv.handleLogout)
 	mux.HandleFunc("/dashboard", srv.handleDashboard)
 	mux.HandleFunc("/docs", srv.handleDocs)
+	mux.HandleFunc("/tunnel", srv.handleTunnel)
 	mux.HandleFunc("/admin", srv.handleAdmin)
 	mux.HandleFunc("/api/keys", srv.handleCreateKey)
 	mux.HandleFunc("/api/keys/revoke", srv.handleRevokeKey)
