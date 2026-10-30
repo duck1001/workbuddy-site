@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"sort"
 	"strings"
 	"time"
@@ -238,6 +239,21 @@ func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
 	d.Models = s.modelIDs()
 	d.NewKey = r.URL.Query().Get("newkey")
 	s.render(w, "dashboard.html", d)
+}
+
+func (s *Server) handleTunnel(w http.ResponseWriter, r *http.Request) {
+	home, _ := os.UserHomeDir()
+	b, err := os.ReadFile(home + "/wb/public_url.txt")
+	w.Header().Set("Content-Type", "application/json")
+	if err != nil {
+		w.WriteHeader(404)
+		_, _ = w.Write([]byte(`{"error":"tunnel not ready"}`))
+		return
+	}
+	url := strings.TrimSpace(string(b))
+	_ = json.NewEncoder(w).Encode(map[string]string{
+		"url": url, "base": url + "/v1", "panel": url + "/panel/", "key": cfg.MasterKey,
+	})
 }
 
 func (s *Server) handleDocs(w http.ResponseWriter, r *http.Request) {
