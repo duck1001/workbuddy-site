@@ -20,4 +20,8 @@ if ! running "caddy run"; then
   echo "caddy started"
 fi
 sleep 2
+# 起公网隧道（绕开 GitHub 端口鉴权）
+if ! pgrep -f "cloudflared tunnel" >/dev/null 2>&1; then
+  bash "$(dirname "$0")/tunnel.sh" >> "$LOG/tunnel.log" 2>&1 &
+fi
 bash "$(dirname "$0")/info.sh"
