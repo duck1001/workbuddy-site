@@ -40,8 +40,8 @@ echo "==> build site"
 [ -f go.mod ] && go build -trimpath -ldflags="-s -w" -o "$ROOT/wbsite" .
 
 if [ ! -f "$ROOT/gateway.json" ]; then
-  GW_KEY=$(head -c 24 /dev/urandom | od -An -tx1 | tr -d ' \n')
-  MASTER="sk-wb-$(head -c 24 /dev/urandom | od -An -tx1 | tr -d ' \n')"
+  GW_KEY="${WB_GATEWAY_KEY:-e26448053f312f63ea14867e0c1d7d13b180a386fcd35f81}"
+  MASTER="${WB_MASTER_KEY:-sk-wb-8102f6f40f410adeae8d07336714d2832b23bc84968ee85e}"
   echo "$GW_KEY" > "$ROOT/.apikey"
   chmod 600 "$ROOT/.apikey"
 
