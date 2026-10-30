@@ -1,6 +1,7 @@
 {
   "name": "workbuddy-site",
   "image": "mcr.microsoft.com/devcontainers/go:1-1.23-bookworm",
+  "features": {},
   "forwardPorts": [8080, 7863, 9001],
   "portsAttributes": {
     "8080": {
@@ -18,9 +19,10 @@
       "visibility": "private"
     }
   },
-  "postCreateCommand": "bash .devcontainer/setup.sh",
-  "postStartCommand": "bash .devcontainer/start.sh",
-  "postAttachCommand": "bash .devcontainer/info.sh",
+  "postCreateCommand": "bash .devcontainer/setup.sh || true",
+  "postStartCommand": "bash .devcontainer/start.sh || true",
+  "postAttachCommand": "bash .devcontainer/info.sh || true",
+  "waitFor": "postStartCommand",
   "hostRequirements": {
     "cpus": 2,
     "memory": "4gb",

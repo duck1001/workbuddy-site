@@ -10,21 +10,34 @@ ARCH=$(uname -m); case "$ARCH" in x86_64) A=amd64;; aarch64|arm64) A=arm64;; esa
 echo "==> arch $A"
 
 echo "==> wb2api"
-curl -fsSL -o /tmp/wb2api.tgz \
-  "https://github.com/linguo2625469/workbuddy2api-panel/releases/download/v1.13.0/wb2api-panel-v1.13.0-linux-${A}.tar.gz"
-tar -xzf /tmp/wb2api.tgz -C "$ROOT" wb2api
-chmod +x "$ROOT/wb2api"
+if [ ! -x "$ROOT/wb2api" ]; then
+  for i in 1 2 3; do
+    if curl -fsSL --retry 2 --connect-timeout 15 -m 180 -o /tmp/wb2api.tgz \
+      "https://github.com/linguo2625469/workbuddy2api-panel/releases/download/v1.13.0/wb2api-panel-v1.13.0-linux-${A}.tar.gz"; then
+      tar -xzf /tmp/wb2api.tgz -C "$ROOT" wb2api && chmod +x "$ROOT/wb2api" && break
+    fi
+    echo "   retry $i"; sleep 5
+  done
+fi
+[ -x "$ROOT/wb2api" ] || echo "!! wb2api 下载失败，稍后重开终端执行 bash .devcontainer/setup.sh"
 
 echo "==> caddy"
-TAG=$(curl -fsSL https://api.github.com/repos/caddyserver/caddy/releases/latest \
-  | python3 -c "import sys,json;print(json.load(sys.stdin).get('tag_name',''))")
-curl -fsSL -o /tmp/caddy.tgz \
-  "https://github.com/caddyserver/caddy/releases/download/${TAG}/caddy_${TAG#v}_linux_${A}.tar.gz"
-tar -xzf /tmp/caddy.tgz -C "$ROOT" caddy
-chmod +x "$ROOT/caddy"
+if [ ! -x "$ROOT/caddy" ]; then
+  for i in 1 2 3; do
+    TAG=$(curl -fsSL --connect-timeout 15 -m 60 https://api.github.com/repos/caddyserver/caddy/releases/latest \
+      | python3 -c "import sys,json;print(json.load(sys.stdin).get('tag_name',''))" 2>/dev/null || true)
+    [ -z "$TAG" ] && TAG=v2.10.0
+    if curl -fsSL --retry 2 --connect-timeout 15 -m 180 -o /tmp/caddy.tgz \
+      "https://github.com/caddyserver/caddy/releases/download/${TAG}/caddy_${TAG#v}_linux_${A}.tar.gz"; then
+      tar -xzf /tmp/caddy.tgz -C "$ROOT" caddy && chmod +x "$ROOT/caddy" && break
+    fi
+    echo "   retry $i"; sleep 5
+  done
+fi
+[ -x "$ROOT/caddy" ] || echo "!! caddy 下载失败"
 
 echo "==> build site"
-go build -trimpath -ldflags="-s -w" -o "$ROOT/wbsite" .
+[ -f go.mod ] && go build -trimpath -ldflags="-s -w" -o "$ROOT/wbsite" .
 
 if [ ! -f "$ROOT/gateway.json" ]; then
   GW_KEY=$(head -c 24 /dev/urandom | od -An -tx1 | tr -d ' \n')
